@@ -3,6 +3,7 @@ import sqlite3
 from time import strftime
 import re
 from tkinter import Tk, Frame, Canvas
+from tkinter import messagebox
 from PIL import ImageTk,Image
 
 # Function to validate reg_num
@@ -35,6 +36,11 @@ def current_time_date():
     todays_date= strftime('Date: %d/%m/%y')
     date_label.config(text=str(todays_date), font=("Verdana", 10), fg="White",bg="black")
 
+# Function to show info about prices (connected to price list-button)
+def prices():
+    messagebox.showinfo("Price list", "Minute 0-60 are FREE of charge.\n\n"
+                        "From minute 61 onwards the price is 0.25 SEK/min\n(15 SEK/hour).")
+
 # Parking spaces variable
 total_parking_spaces= 50
 
@@ -46,7 +52,7 @@ lab= Label(root, image=new_image, borderwidth=0)
 lab.grid(row=0, column=0, sticky='n')
 
 # Create buttons
-see_prices_button=Button(root, height=1, width=70, relief="solid", text="View price list", font=('Verdana', 10), fg='#F5F5F5', bg='#36454F')
+see_prices_button=Button(root, command=prices, height=1, width=70, relief="solid", text="View price list", font=('Verdana', 10), fg='#F5F5F5', bg='#36454F')
 see_prices_button.grid(padx= 30, pady= 5, row='4', column='0', sticky='w')
 
 start_parking_button=Button(root, height=2, width=20, relief="solid", text="Start parking", font=('Verdana', 10), fg='#F5F5F5', bg='#2E8B57')
