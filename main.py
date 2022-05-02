@@ -23,6 +23,7 @@ root.iconbitmap('phouse.ico')
 # Parking spaces variable
 total_parking_spaces=50
 
+
 # Function to show date and keep time dynamic at root
 def current_time_date():
     my_time=strftime(' Local time: %H:%M:%S')
@@ -58,17 +59,9 @@ def start_parking():
         stop_parking_button.config(state='normal')
         status_parking_button.config(state='normal')
 
-    # Function with messagebox(yes/no) before exiting start_pop_up 
-    # enables root menu buttons after closing start_pop_up 
-    def on_close():
-        close = messagebox.askyesno(title="Exit", message="Are you sure you want to exit?")
-        if close:
-            activate_root_buttons()
-            start_pop_up.destroy()
-    start_pop_up.protocol("WM_DELETE_WINDOW",  on_close)
 
     # Label for the text that asks for users reg num.
-    regnum_label = Label(start_pop_up, text="Please enter your registration number", font=("Verdana", 11), fg="black")
+    regnum_label = Label(start_pop_up, text="Please enter your registration number", font=("Verdana", 11), fg="black", bg='#F5F5F5')
     regnum_label.pack(pady=20)
 
     # Entry box for user to type in reg num
@@ -130,18 +123,33 @@ def start_parking():
     start_button=Button(start_pop_up, command=start_click, height=0, width=30, relief="solid", text="Start parking", font=('Verdana', 10), fg='#F5F5F5', bg='#2E8B57')
     start_button.pack(pady=20)
 
+    # Activate root buttons and close start_pop_up page when clicking 'X' on Windows Manager
+    def on_close():
+        start_parking_button.config(state='normal')
+        stop_parking_button.config(state='normal')
+        status_parking_button.config(state='normal')
+        start_pop_up.destroy()
+
+    start_pop_up.protocol("WM_DELETE_WINDOW", on_close)
+
 # Function to see parked car status (connected to 'See status for parked car'-button)
 def car_status():
     global status_pop_up
     status_pop_up = Toplevel(root)
+    # Remove Windows Manager bar
+    #status_pop_up.overrideredirect(True)
     status_pop_up.iconbitmap('phouse.ico')
     status_pop_up.title("Status for parked car")
-    status_pop_up.geometry("400x500")
+    status_pop_up.geometry("400x350")
     status_pop_up.resizable(width=False,height=False)
     status_pop_up.config(bg="#F5F5F5")
 
+    start_parking_button.config(state='disabled')
+    stop_parking_button.config(state='disabled')
+    status_parking_button.config(state='disabled')
+
     # Label for the text that asks for users reg num.
-    regnum_label = Label(status_pop_up, text="Please enter your registration number", font=("Verdana", 11), fg="black")
+    regnum_label = Label(status_pop_up, text="Please enter your registration number", font=("Verdana", 11), fg="black", bg='#F5F5F5')
     regnum_label.pack(pady=20)
 
     global entry_text
@@ -157,6 +165,7 @@ def car_status():
     entry_text.trace("w", lambda *args: character_limit(entry_text))
 
     def status_click():
+        status_button.config(state='disabled')
         # Create a connection to DB
         conn = sqlite3.connect('park.db')
         
@@ -165,8 +174,10 @@ def car_status():
 
         regnum= entry_text.get()
         if re.match(r"^[A-Za-z]{3}[0-9]{2}[0-9A-Za-z]{1}$", regnum):
-            cur.execute("SELECT CAST ((JulianDay('now','localtime') - JulianDay(start_time)) * 24 * 60 As Integer) FROM parked_cars WHERE parked_car=?", (regnum,))
+            # Get total parked_time
+            cur.execute("SELECT CAST ((JulianDay('now','localtime') - JulianDay(start_time)) * 24 * 60 AS Integer) FROM parked_cars WHERE parked_car=?", (regnum,))
             parked_time=cur.fetchone()
+            # Select the right car by its regnum
             cur.execute("SELECT * FROM parked_cars WHERE parked_car=?", (regnum,))
             car_info=cur.fetchone()
             if car_info:
@@ -174,10 +185,17 @@ def car_status():
                 car_reg= "Registration number: " + str(car_info[0])
                 start_time="Start date and time:" + str(car_info[1])
                 stop_time="Stop date and time: " + str(car_info[2])
-                total_time="Total parking time: " + str(parked_time[0]) + ' minutes'
-                parked_time=int(parked_time)
-                print(parked_time)
-                #price="Price: " + eval(parked_time*0.25)
+                #total_time="Total parking time: " + str(parked_time[0]) + ' minutes'
+                if parked_time[0] <= 59:
+                    total_time="Total parking time: " + str(parked_time[0]) + ' minutes'
+                elif parked_time[0] >= 60:
+                    total_time="Total parking time: " + str(round(parked_time[0]/60,1)) + ' hours'
+
+                # Variable for pricing for a parked car (0-60min FREE. 61 onwards 0.25kr/min)
+                if parked_time[0] <= 60:
+                    price="Price: " + str(parked_time[0] * 0) + ' SEK'
+                elif parked_time[0] >= 61:
+                    price="Price: " + str((parked_time[0] - 60) * (0.25)) + ' SEK'
             
                 # Labels for the variables above
                 car_reg_label = Label(status_pop_up, text=car_reg, bg='#F5F5F5', font=("Verdana", 11))
@@ -188,10 +206,10 @@ def car_status():
                 stop_time_label.pack()
                 total_time_label = Label(status_pop_up, text=total_time, bg='#F5F5F5', font=("Verdana", 11))
                 total_time_label.pack()
-                #price_label = Label(status_pop_up, text=price, bg='#F5F5F5', font=("Verdana", 11))
-                #price_label.pack()
-                # Clear entry box after click
-                entry_regnum.delete(0, END)
+                price_label = Label(status_pop_up, text=price, bg='#F5F5F5', font=("Verdana", 11))
+                price_label.pack()
+                # Clear entry box after click on 'check status'
+                entry_regnum.delete(0, END)               
             elif not car_info:
                 messagebox.showerror(title='Car not found', message=f'Car with registration number: {regnum} not found')
         else:
@@ -200,9 +218,18 @@ def car_status():
         # Commit changes
         conn.commit()
 
-    # Create start button for start_pop_up
+    # Create status button for status_pop_up
     status_button=Button(status_pop_up, command=status_click, height=0, width=30, relief="solid", text="Check status", font=('Verdana', 10), fg='#F5F5F5', bg='#3466a5')
     status_button.pack(pady=20)
+
+    # Activate root buttons and close status_pop_up page when clicking 'X' on Windows Manager
+    def on_close():
+        start_parking_button.config(state='normal')
+        stop_parking_button.config(state='normal')
+        status_parking_button.config(state='normal')
+        status_pop_up.destroy()
+
+    status_pop_up.protocol("WM_DELETE_WINDOW", on_close)
 
 # Create picture for header
 park_image = Image.open("phouse.png")
@@ -247,6 +274,12 @@ conn = sqlite3.connect('park.db')
 # Create cursor
 cur = conn.cursor()
 
+# Update total parking spaces depending on amount of parked cars stored i the db.
+cur.execute("SELECT COUNT (*) FROM parked_cars")
+parked_cars_amount=cur.fetchall()
+total_parking_spaces=total_parking_spaces-parked_cars_amount[0][0]
+park_space_label.config(text='Available spots: ' + str(total_parking_spaces))
+
 # Enable foreign keys 
 cur.execute("PRAGMA foreign_keys=1")
 
@@ -257,11 +290,6 @@ def create_tables():
     cur.execute("""CREATE TABLE IF NOT EXISTS driver (
         email TEXT PRIMARY KEY NOT NULL
             )""")
-    # Seeds for driver table
-    # cur.execute("""INSERT INTO driver (email) 
-    #     VALUES ('tester@test.se' 
-    #         )""")
-    # #cur.execute("DELETE FROM driver")
 
     # Car table
     cur.execute("""CREATE TABLE IF NOT EXISTS car (
@@ -269,28 +297,7 @@ def create_tables():
         email TEXT,        
         FOREIGN KEY (email) REFERENCES driver(email) 
             )""")
-    # Seeds for car table
-    # cur.execute("""INSERT INTO car (car_id, email) 
-    #     VALUES ('XYZ789', 'tester@test.se'
-    #         )""")
-    #cur.execute("DELETE FROM car")
-
-
-    # Parking lot table
-    # cur.execute("""CREATE TABLE IF NOT EXISTS parking_lot (
-    #     park_name TEXT DEFAULT 'YourPark',
-    #     park_address TEXT DEFAULT 'Test Street 17',
-    #     park_city TEXT DEFAULT 'Stockholm',
-    #     park_zip INT(6) DEFAULT 12345
-    #         )""")
-
-    # Om parking_lot table ska användas, ska raden nedan in i parked_cars table
-    # FOREIGN KEY (park_name) REFERENCES parking_lot(park_name)
-
-    # cur.execute("""INSERT INTO parking_lot VALUES (
-    #         'YourPark', 'Test Address', 'Stockholm', '341639'
-    #         )""")
-
+    
     # Parked cars table
     cur.execute("""CREATE TABLE IF NOT EXISTS parked_cars (
         parked_car TEXT(6) UNIQUE NOT NULL,
@@ -300,14 +307,6 @@ def create_tables():
         price INT,
         FOREIGN KEY (parked_car) REFERENCES car (car_id)
             )""")
-
-    # cur.execute("""INSERT INTO parked_cars (park_name, parked_car, start_time) 
-    #     VALUES ('YourPark','ABC123', datetime('now','localtime')
-    #         )""")
-    # cur.execute("""UPDATE parked_cars
-    #         SET stop_time = datetime('now','localtime')
-    #         WHERE parked_car = "XYZ789"
-    #         """)
 
 # Call the create tables function
 #create_tables()
