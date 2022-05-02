@@ -10,19 +10,18 @@ from PIL import ImageTk,Image
 
 # Create root window
 root=Tk()
-# name
+# root title
 root.title("Parking application")
-# size, not resizable
+# root size and not resizable
 root.geometry("620x650")
 root.resizable(width=False, height=False)
-# bg color for window
+# background color for window
 root.configure(bg="#F5F5F5")
 # icon for application window
 root.iconbitmap('phouse.ico')
 
 # Parking spaces variable
 total_parking_spaces=50
-
 
 # Function to show date and keep time dynamic at root
 def current_time_date():
@@ -148,10 +147,17 @@ def car_status():
     stop_parking_button.config(state='disabled')
     status_parking_button.config(state='disabled')
 
+    # function to activate root menu buttons
+    def activate_root_buttons():
+        start_parking_button.config(state='normal')
+        stop_parking_button.config(state='normal')
+        status_parking_button.config(state='normal')
+
     # Label for the text that asks for users reg num.
     regnum_label = Label(status_pop_up, text="Please enter your registration number", font=("Verdana", 11), fg="black", bg='#F5F5F5')
     regnum_label.pack(pady=20)
 
+    # Entry for reg num.
     global entry_text
     global entry_regnum
     entry_text = StringVar()
@@ -164,7 +170,9 @@ def car_status():
             entry_text.set(entry_text.get().upper()[:6])
     entry_text.trace("w", lambda *args: character_limit(entry_text))
 
+    # Funcion when 'check status'-button is clicked.
     def status_click():
+        # Disable 'check status'-button when info about car is shown
         status_button.config(state='disabled')
         # Create a connection to DB
         conn = sqlite3.connect('park.db')
@@ -172,14 +180,17 @@ def car_status():
         # Create cursor
         cur = conn.cursor()
 
+        # Variable to store inputed reg num
         regnum= entry_text.get()
+        # Check if regnum has valid format
         if re.match(r"^[A-Za-z]{3}[0-9]{2}[0-9A-Za-z]{1}$", regnum):
-            # Get total parked_time
+            # Get total parked time for a parked_car and store it in variable parked_time
             cur.execute("SELECT CAST ((JulianDay('now','localtime') - JulianDay(start_time)) * 24 * 60 AS Integer) FROM parked_cars WHERE parked_car=?", (regnum,))
             parked_time=cur.fetchone()
-            # Select the right car by its regnum
+            # Select the right car by its regnum to check its status
             cur.execute("SELECT * FROM parked_cars WHERE parked_car=?", (regnum,))
             car_info=cur.fetchone()
+            # If regnum is in db
             if car_info:
                 # Variables to store reg num, start/stop time and price
                 car_reg= "Registration number: " + str(car_info[0])
@@ -190,7 +201,6 @@ def car_status():
                     total_time="Total parking time: " + str(parked_time[0]) + ' minutes'
                 elif parked_time[0] >= 60:
                     total_time="Total parking time: " + str(round(parked_time[0]/60,1)) + ' hours'
-
                 # Variable for pricing for a parked car (0-60min FREE. 61 onwards 0.25kr/min)
                 if parked_time[0] <= 60:
                     price="Price: " + str(parked_time[0] * 0) + ' SEK'
@@ -209,12 +219,18 @@ def car_status():
                 price_label = Label(status_pop_up, text=price, bg='#F5F5F5', font=("Verdana", 11))
                 price_label.pack()
                 # Clear entry box after click on 'check status'
-                entry_regnum.delete(0, END)               
+                entry_regnum.delete(0, END)
+            # If regnum is not in db, show error message.               
             elif not car_info:
                 messagebox.showerror(title='Car not found', message=f'Car with registration number: {regnum} not found')
+                status_pop_up.destroy()
+                activate_root_buttons()
+        # If regnum is not in valid format, show error message.
         else:
             messagebox.showerror(title='Not valid', message=f'{regnum} is not a valid registration number\nPlease try again.')
             entry_regnum.delete(0, END)
+            status_pop_up.destroy()
+            activate_root_buttons()
         # Commit changes
         conn.commit()
 
@@ -228,7 +244,6 @@ def car_status():
         stop_parking_button.config(state='normal')
         status_parking_button.config(state='normal')
         status_pop_up.destroy()
-
     status_pop_up.protocol("WM_DELETE_WINDOW", on_close)
 
 # Create picture for header
