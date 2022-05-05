@@ -11,5 +11,9 @@ The main features of the application are the following:
 * See status for parked car
 * Stop parking
 
+![application](https://user-images.githubusercontent.com/90247080/166909151-a0443420-7d9a-445f-adda-206c80174043.JPG)
+
+
+
 #### Deeper documentation:
 More advanced and detailed documentation about planning, database, sprints, features and todo will be found in the PDF file in the repository. There is also documentation about task tracking for each sprint and feature.
