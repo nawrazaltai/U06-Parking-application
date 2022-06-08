@@ -369,7 +369,10 @@ def create_tables():
         FOREIGN KEY (parked_car) REFERENCES car (car_id)
             )""")
 
+#def clear_table():
+#    cur.execute(""" DELETE FROM parked_cars; """)
 
+#clear_table()
 # Call the create tables function
 # create_tables()
 
