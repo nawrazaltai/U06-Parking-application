@@ -223,7 +223,12 @@ def car_status():
         # Check if regnum has valid format
         if re.match(r"^[A-Za-z]{3}[0-9]{2}[0-9A-Za-z]{1}$", regnum):
             # Get total parked time for a parked_car and store it in variable parked_time
-            curs.execute("SELECT CAST ((JulianDay('now','localtime') - JulianDay(start_time)) * 24 * 60 AS Integer) FROM parked_cars WHERE parked_car=?", (regnum,))
+            #curs.execute("SELECT CAST ((JulianDay('now','localtime') - JulianDay(start_time)) * 24 * 60 AS Integer) FROM parked_cars WHERE parked_car=?", (regnum,))
+            curs.execute("SELECT (JulianDay('now','localtime') - JulianDay(start_time)) * 24 * 60 FROM parked_cars WHERE parked_car=?", (regnum,))
+            
+            # Query below is to pause parking time and price
+            #curs.execute("SELECT ((JulianDay(stop_time) - JulianDay(start_time)) * 24) * 60 FROM parked_cars WHERE parked_car=?", (regnum,))
+            #curs.execute("SELECT JULIANDAY(stop_time) - JULIANDAY(start_time) * 1440 FROM parked_cars WHERE parked_car=?", (regnum,))
             parked_time = curs.fetchone()
             # Select the right car by its regnum to check its status
             curs.execute("SELECT * FROM parked_cars WHERE parked_car=?", (regnum,))
@@ -232,20 +237,24 @@ def car_status():
             if car_info:
                 # Variables to store reg num, start/stop time and price
                 car_reg = "Registration number: " + str(car_info[0])
-                start_time = "Start date and time:" + str(car_info[1])
+                start_time = "Start date and time: " + str(car_info[1])
                 stop_time = "Stop date and time: " + str(car_info[2])
-                # Show total parking time, if time < 60min show in minutes, if time > 60min show in hours
+                # Show total parking time, if time < 60min ---> show in minutes, if time > 60min ---> show in hours
                 if parked_time[0] <= 59:
-                    total_time = "Total parking time: " + str(parked_time[0]) + ' minutes'
+                    total_time = "Total parking time: " + str(round(parked_time[0])) + ' minutes'
+                    print(total_time)
                 elif parked_time[0] >= 60:
-                    total_time = "Total parking time: " + str(round(parked_time[0] / 60, 1)) + ' hours'
+                    total_time = "Total parking time: " + str(round(parked_time[0] / 60, 2)) + ' hours'
+                    #total_time = "Total parking time: " + str(round(parked_time[0] / 60)) + " hours" + " & " + str(round(((parked_time[0] % 1) * 60))) + " minutes"
+                    print(total_time)
 
                 # Variable for pricing for a parked car (0-60min FREE)
                 if parked_time[0] <= 60:
                     price = "Price: " + str(parked_time[0] * 0) + ' SEK'
                 # Price for 61 min onwards ---> 0.25kr/min, REMOVES FIRST FREE HOUR)
                 elif parked_time[0] >= 61:
-                    price = "Price: " + str((parked_time[0] - 60) * (0.25)) + ' SEK'
+                    price = "Price: " + str(round((parked_time[0] - 60) * (0.25), 1)) + ' SEK'
+                    print(price)
 
                 # Labels for the variables above
                 car_reg_label = Label(status_pop_up, text=car_reg, bg='#F5F5F5', font=("Verdana", 11))
@@ -287,6 +296,109 @@ def car_status():
         status_pop_up.destroy()
     status_pop_up.protocol("WM_DELETE_WINDOW", on_close)
 
+def stop_parking():
+
+    # global status_pop_up
+    stop_pop_up = Toplevel(root)
+
+    # Remove Windows Manager bar
+    # status_pop_up.overrideredirect(True)
+
+    stop_pop_up.iconbitmap('phouse.ico')
+    stop_pop_up.title("Stop parking")
+    stop_pop_up.geometry("400x350")
+    stop_pop_up.resizable(width=False, height=False)
+    stop_pop_up.config(bg="#F5F5F5")
+
+    start_parking_button.config(state='disabled')
+    stop_parking_button.config(state='disabled')
+    status_parking_button.config(state='disabled')
+    
+    # function to activate root menu buttons
+    def activate_root_buttons():
+        start_parking_button.config(state='normal')
+        stop_parking_button.config(state='normal')
+        status_parking_button.config(state='normal')
+
+    # Label for the text that asks for users reg num.
+    regnum_label = Label(stop_pop_up, text="Please enter your registration number", font=("Verdana", 11), fg="black", bg='#F5F5F5')
+    regnum_label.pack(pady=20)
+
+    # Entry for reg num.
+    # global entry_text_status
+    # global entry_regnum_status
+    entry_text_stop = StringVar()
+    entry_regnum_stop = Entry(stop_pop_up, width=10, borderwidth=4, font=("Verdana", 9), textvariable=entry_text_stop)
+    entry_regnum_stop.pack()
+
+    # Function that limits reg num entry to 6 upper case characters.
+    def character_limit(entry_text):
+        if len(entry_text.get()) > 0:
+            entry_text.set(entry_text.get().upper()[:6])
+    entry_text_stop.trace("w", lambda *args: character_limit(entry_text_stop))
+
+    # Funcion when 'stop parking'-button is clicked.
+    def stop_click():
+        global TOTAL_PARKING_SPACES
+        # Disable 'stop parking'-button when button is pressed
+        stop_button.config(state='disabled')
+        # Create a connection to DB
+        con = sqlite3.connect('park.db')
+
+        # Create cursor
+        curs = con.cursor()
+
+        # Variable to store inputed reg num
+        regnum = entry_text_stop.get()
+
+        # Check if regnum has valid format
+        if re.match(r"^[A-Za-z]{3}[0-9]{2}[0-9A-Za-z]{1}$", regnum):
+            curs.execute("SELECT car_id FROM car WHERE car_id=?", (regnum,))
+            result = curs.fetchone()
+            if not result:
+                messagebox.showerror(title='Not in use', message=f'Car: {regnum} not found!\nPlease try again with a different registration number.')
+                stop_pop_up.destroy()
+                activate_root_buttons()
+            # If reg num is valid and unique insert into car and parked_cars table
+            else:
+                #curs.execute("INSERT INTO car (car_id) VALUES (?)", (regnum,))
+                #curs.execute("INSERT INTO parked_cars (parked_car) VALUES (?)", (regnum,))
+                # total_time = JulianDay('%M', stop_time) - JulianDay('%M', start_time)
+                # total_time = ((JulianDay(stop_time) - JulianDay(start_time)) * 24 * 60)
+                # price = (total_time * 60 - 60) * 0.25
+                # WHEN ROUND((total_time)* 60) >= 60 THEN ROUND((total_time) * 15 - 15, 1)
+                curs.execute("""UPDATE parked_cars SET stop_time = datetime(julianday('now', 'localtime')) WHERE parked_car=?""", (regnum,))
+                curs.execute("""UPDATE parked_cars SET total_time = ROUND(((julianday(stop_time) - julianday(start_time)) * 24 * 60) / 60, 2.00)""")
+                curs.execute("""UPDATE parked_cars SET price = CASE
+                                                               WHEN (total_time) BETWEEN 0 AND 1 THEN 0
+                                                               ELSE ROUND((total_time - 1.00) * (15.00), 1)
+                                                               END
+                                WHERE parked_car = ?""", (regnum,))
+                #curs.execute("UPDATE parked_cars SET total_time = CAST ((JulianDay(start_time) - JulianDay(stop_time)) * 24 * 60 WHERE parked_car =?", (regnum,))
+                #curs.execute("SELECT CAST ((JulianDay('now','localtime') - JulianDay(start_time)) * 24 * 60 AS Integer) FROM parked_cars WHERE parked_car=?", (regnum,))
+                TOTAL_PARKING_SPACES += 1
+            # Commit changes
+                con.commit()
+            # Clear entry box
+                entry_regnum_stop.delete(0, END)
+                park_space_label.config(text='Available spots: ' + str(TOTAL_PARKING_SPACES))
+                # messagebox.showinfo(title='Park started', message=f'Parking for {regnum} started at {date_time}')
+        else:
+            messagebox.showerror(title='Not valid', message=f'{regnum} is not a valid registration number\nPlease try again.')
+            entry_regnum_stop.delete(0, END)
+            activate_root_buttons()
+
+    # Create status button for status_pop_up
+    stop_button = Button(stop_pop_up, command=stop_click, height=0, width=30, relief="solid", text="Stop parking", font=('Verdana', 10), fg='#F5F5F5', bg='#8f1d21')
+    stop_button.pack(pady=20)
+
+    # Function to activate root buttons and close status_pop_up page when clicking 'X' on the Windows Manager.
+    def on_close():
+        start_parking_button.config(state='normal')
+        stop_parking_button.config(state='normal')
+        status_parking_button.config(state='normal')
+        stop_pop_up.destroy()
+    stop_pop_up.protocol("WM_DELETE_WINDOW", on_close)
 
 # Create picture for header
 park_image = Image.open("phouse.png")
@@ -307,7 +419,7 @@ start_parking_button.grid(padx=30, pady=15, row='5', column='0', sticky='w')
 status_parking_button = Button(root, command=car_status, height=2, width=22, relief="solid", text="See status for parked car", font=('Verdana', 10), fg='#F5F5F5', bg='#3466a5')
 status_parking_button.grid(padx=30, pady=15, row='5', column='0', sticky='n')
 
-stop_parking_button = Button(root, height=2, width=20, relief="solid", text="Stop parking", font=('Verdana', 10), fg='#F5F5F5', bg='#8f1d21')
+stop_parking_button = Button(root, command=stop_parking, height=2, width=20, relief="solid", text="Stop parking", font=('Verdana', 10), fg='#F5F5F5', bg='#8f1d21')
 stop_parking_button.grid(padx=30, pady=15, row='5', column='0', sticky='e')
 
 # Create black line below logo
@@ -369,10 +481,11 @@ def create_tables():
         FOREIGN KEY (parked_car) REFERENCES car (car_id)
             )""")
 
-#def clear_table():
-#    cur.execute(""" DELETE FROM parked_cars; """)
+# def clear_table():
+#     cur.execute("DELETE FROM parked_cars")
+#     cur.execute("DELETE FROM car;")
 
-#clear_table()
+# clear_table()
 # Call the create tables function
 # create_tables()
 
