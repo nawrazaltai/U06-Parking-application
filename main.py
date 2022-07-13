@@ -1,9 +1,11 @@
 """Parking application"""
 # from tkinter import *
-from tkinter import Label, Toplevel, StringVar, Entry, END, Button, messagebox, Tk, Canvas
+from tkinter import Label, LabelFrame, Toplevel, StringVar, Entry, END, Button, messagebox, Tk, Canvas, TclError, Message
 import sqlite3
 from time import strftime
 import re
+import time
+from turtle import bgcolor
 # from tkinter import Tk, Canvas
 # from tkinter import messagebox
 from PIL import ImageTk, Image
@@ -41,10 +43,21 @@ def current_time_date():
 # Function to show info about prices (connected to the 'View price list'-button)
 def prices():
     """This function shows the price list when the 'View price list'-button is clicked.
-    The price list appears in a messagebox.showinfo"""
+    The price list appears in a Message, the box automatically closes after 25 seconds"""
 
-    messagebox.showinfo("Price list", "Minute 0-60 are FREE of charge.\n\n"
-                        "From minute 61 onwards the price is 0.25 SEK/min\n(15 SEK/hour).")
+    from tkinter import Tk
+    from tkinter.messagebox import Message 
+    from _tkinter import TclError
+    TIME_TO_WAIT = 25000
+    root = Tk()
+    root.withdraw()
+    root.iconbitmap('phouse.ico')
+    try:
+        root.after(TIME_TO_WAIT, root.destroy) 
+        Message(title="Price list", message="PRICE LIST:\nMinute 0-60 are FREE of charge.\n\n"
+        "From minute 61 onwards the price is 0.25 SEK/min\n(15 SEK/hour).", master=root).show()
+    except TclError:
+        pass
 
 
 # Function that takes user to new window after clicking on start parking in root menu (connected to 'Start parking'-button)
@@ -82,15 +95,18 @@ def start_parking():
         stop_parking_button.config(state='normal')
         status_parking_button.config(state='normal')
 
+    startlabelframe = LabelFrame(start_pop_up, background='#F5F5F5')
+    startlabelframe.pack(pady=15)
+
     # Label with the text that asks for users reg num.
     def create_labels():
-        regnum_label = Label(start_pop_up, text="Please enter your registration number", font=("Verdana", 11), fg="black", bg='#F5F5F5')
+        regnum_label = Label(startlabelframe, text="Please enter your registration number", font=("Verdana 11 bold"), fg="black", bg='#F5F5F5')
         regnum_label.pack(pady=20)
     create_labels()
 
     # Entry box for user to type in reg num
     entry_text = StringVar()
-    entry_regnum = Entry(start_pop_up, width=10, borderwidth=4, font=("Verdana", 9), textvariable=entry_text)
+    entry_regnum = Entry(startlabelframe, width=30, borderwidth=4, font=("Verdana", 9), textvariable=entry_text)
     entry_regnum.pack()
 
     # Function that limits reg num entry to 6 upper case characters.
@@ -142,7 +158,7 @@ def start_parking():
         activate_root_buttons()
 
     # Create start button for start_pop_up
-    start_button = Button(start_pop_up, command=start_click, height=0, width=30, relief="solid", text="Start parking", font=('Verdana', 10), fg='#F5F5F5', bg='#2E8B57')
+    start_button = Button(startlabelframe, command=start_click, height=0, width=30, relief="solid", text="Start parking", font=('Verdana', 10), fg='#F5F5F5', bg='#2E8B57')
     start_button.pack(pady=20)
 
     # Activate root buttons and close start_pop_up page when clicking 'X' on Windows Manager
@@ -175,14 +191,17 @@ def car_status():
     # status_pop_up.overrideredirect(True)
 
     status_pop_up.iconbitmap('phouse.ico')
-    status_pop_up.title("Status for parked car")
-    status_pop_up.geometry("400x350")
+    status_pop_up.title("Car status")
+    status_pop_up.geometry("400x380")
     status_pop_up.resizable(width=False, height=False)
     status_pop_up.config(bg="#F5F5F5")
 
     start_parking_button.config(state='disabled')
     stop_parking_button.config(state='disabled')
     status_parking_button.config(state='disabled')
+
+    statuslabelframe = LabelFrame(status_pop_up, background='#F5F5F5')
+    statuslabelframe.pack(pady=15)
 
     # function to activate root menu buttons
     def activate_root_buttons():
@@ -191,14 +210,14 @@ def car_status():
         status_parking_button.config(state='normal')
 
     # Label for the text that asks for users reg num.
-    regnum_label = Label(status_pop_up, text="Please enter your registration number", font=("Verdana", 11), fg="black", bg='#F5F5F5')
+    regnum_label = Label(statuslabelframe, text="Please enter your registration number", font=("Verdana 11 bold"), fg="black", bg='#F5F5F5')
     regnum_label.pack(pady=20)
 
     # Entry for reg num.
     # global entry_text_status
     # global entry_regnum_status
     entry_text_status = StringVar()
-    entry_regnum_status = Entry(status_pop_up, width=10, borderwidth=4, font=("Verdana", 9), textvariable=entry_text_status)
+    entry_regnum_status = Entry(statuslabelframe, width=30, borderwidth=4, font=("Verdana", 9), textvariable=entry_text_status)
     entry_regnum_status.pack()
 
     # Function that limits reg num entry to 6 upper case characters.
@@ -244,29 +263,40 @@ def car_status():
                     total_time = "Total parking time: " + str(round(parked_time[0])) + ' minutes'
                     print(total_time)
                 elif parked_time[0] >= 60:
-                    total_time = "Total parking time: " + str(round(parked_time[0] / 60, 2)) + ' hours'
-                    #total_time = "Total parking time: " + str(round(parked_time[0] / 60)) + " hours" + " & " + str(round(((parked_time[0] % 1) * 60))) + " minutes"
-                    print(total_time)
+                    #try:
+                        #total_time = "Total parking time: " + str(round(parked_time[0] / 60, 2)) + ' hours'
+                    a = (round(parked_time[0] / 60, 2))
+                    b = a - int(a)
+                    #print(round(b * 60))
+                    #except ValueError:
+                        #pass
+                    #a = int(total_time) 
+                    #c = int(a) - int(a)
+                    #print(c)
+                    #print((a*60) % 60)
+                    total_time = "Total parking time: " + str(int(parked_time[0] / 60)) + " hours & " + str(round(b*60)) + " minutes"
 
                 # Variable for pricing for a parked car (0-60min FREE)
                 if parked_time[0] <= 60:
-                    price = "Price: " + str(parked_time[0] * 0) + ' SEK'
+                    price = "Current price: " + str(round(parked_time[0] * 0)) + ' SEK'
                 # Price for 61 min onwards ---> 0.25kr/min, REMOVES FIRST FREE HOUR)
                 elif parked_time[0] >= 61:
-                    price = "Price: " + str(round((parked_time[0] - 60) * (0.25), 1)) + ' SEK'
+                    price = "Current price: " + str(round((parked_time[0] - 60) * (0.25), 1)) + ' SEK'
                     print(price)
 
                 # Labels for the variables above
-                car_reg_label = Label(status_pop_up, text=car_reg, bg='#F5F5F5', font=("Verdana", 11))
-                car_reg_label.pack()
-                start_time_label = Label(status_pop_up, text=start_time, bg='#F5F5F5', font=("Verdana", 11))
-                start_time_label.pack()
-                stop_time_label = Label(status_pop_up, text=stop_time, bg='#F5F5F5', font=("Verdana", 11))
-                stop_time_label.pack()
-                total_time_label = Label(status_pop_up, text=total_time, bg='#F5F5F5', font=("Verdana", 11))
-                total_time_label.pack()
-                price_label = Label(status_pop_up, text=price, bg='#F5F5F5', font=("Verdana", 11))
-                price_label.pack()
+                parking_summary = LabelFrame(status_pop_up, text="Car status", bg='#F5F5F5', font=('Verdana 11 bold'), pady=5, labelanchor='n')
+                parking_summary.pack(pady=5)
+                car_reg_label = Label(parking_summary, text=car_reg, bg='#F5F5F5', font=("Verdana", 11))
+                car_reg_label.pack(anchor="w")
+                start_time_label = Label(parking_summary, text=start_time, bg='#F5F5F5', font=("Verdana", 11))
+                start_time_label.pack(anchor="w")
+                stop_time_label = Label(parking_summary, text=stop_time, bg='#F5F5F5', font=("Verdana", 11))
+                stop_time_label.pack(anchor="w")
+                total_time_label = Label(parking_summary, text=total_time, bg='#F5F5F5', font=("Verdana", 11))
+                total_time_label.pack(anchor="w")
+                price_label = Label(parking_summary, text=price, bg='#F5F5F5', font=("Verdana", 11))
+                price_label.pack(anchor="w")
 
                 # Clear entry box after click on 'check status'
                 entry_regnum_status.delete(0, END)
@@ -285,7 +315,7 @@ def car_status():
         con.commit()
 
     # Create status button for status_pop_up
-    status_button = Button(status_pop_up, command=status_click, height=0, width=30, relief="solid", text="Check status", font=('Verdana', 10), fg='#F5F5F5', bg='#3466a5')
+    status_button = Button(statuslabelframe, command=status_click, height=0, width=30, relief="solid", text="Check status", font=('Verdana', 10), fg='#F5F5F5', bg='#3466a5')
     status_button.pack(pady=20)
 
     # Function to activate root buttons and close status_pop_up page when clicking 'X' on the Windows Manager.
@@ -306,7 +336,7 @@ def stop_parking():
 
     stop_pop_up.iconbitmap('phouse.ico')
     stop_pop_up.title("Stop parking")
-    stop_pop_up.geometry("400x350")
+    stop_pop_up.geometry("400x450")
     stop_pop_up.resizable(width=False, height=False)
     stop_pop_up.config(bg="#F5F5F5")
 
@@ -320,15 +350,19 @@ def stop_parking():
         stop_parking_button.config(state='normal')
         status_parking_button.config(state='normal')
 
+    stoplabelframe = LabelFrame(stop_pop_up, background='#F5F5F5')
+    stoplabelframe.pack(pady=15)
+
     # Label for the text that asks for users reg num.
-    regnum_label = Label(stop_pop_up, text="Please enter your registration number", font=("Verdana", 11), fg="black", bg='#F5F5F5')
+    regnum_label = Label(stoplabelframe, text="Please enter your registration number", font=("Verdana 11 bold"), fg="black", bg='#F5F5F5')
     regnum_label.pack(pady=20)
 
+    
     # Entry for reg num.
     # global entry_text_status
     # global entry_regnum_status
     entry_text_stop = StringVar()
-    entry_regnum_stop = Entry(stop_pop_up, width=10, borderwidth=4, font=("Verdana", 9), textvariable=entry_text_stop)
+    entry_regnum_stop = Entry(stoplabelframe, width=30, borderwidth=4, font=("Verdana", 9), textvariable=entry_text_stop)
     entry_regnum_stop.pack()
 
     # Function that limits reg num entry to 6 upper case characters.
@@ -340,6 +374,7 @@ def stop_parking():
     # Funcion when 'stop parking'-button is clicked.
     def stop_click():
         global TOTAL_PARKING_SPACES
+
         # Disable 'stop parking'-button when button is pressed
         stop_button.config(state='disabled')
         # Create a connection to DB
@@ -361,12 +396,6 @@ def stop_parking():
                 activate_root_buttons()
             # If reg num is valid and unique insert into car and parked_cars table
             else:
-                #curs.execute("INSERT INTO car (car_id) VALUES (?)", (regnum,))
-                #curs.execute("INSERT INTO parked_cars (parked_car) VALUES (?)", (regnum,))
-                # total_time = JulianDay('%M', stop_time) - JulianDay('%M', start_time)
-                # total_time = ((JulianDay(stop_time) - JulianDay(start_time)) * 24 * 60)
-                # price = (total_time * 60 - 60) * 0.25
-                # WHEN ROUND((total_time)* 60) >= 60 THEN ROUND((total_time) * 15 - 15, 1)
                 curs.execute("""UPDATE parked_cars SET stop_time = datetime(julianday('now', 'localtime')) WHERE parked_car=?""", (regnum,))
                 curs.execute("""UPDATE parked_cars SET total_time = ROUND(((julianday(stop_time) - julianday(start_time)) * 24 * 60) / 60, 2.00)""")
                 curs.execute("""UPDATE parked_cars SET price = CASE
@@ -374,10 +403,49 @@ def stop_parking():
                                                                ELSE ROUND((total_time - 1.00) * (15.00), 1)
                                                                END
                                 WHERE parked_car = ?""", (regnum,))
-                #curs.execute("UPDATE parked_cars SET total_time = CAST ((JulianDay(start_time) - JulianDay(stop_time)) * 24 * 60 WHERE parked_car =?", (regnum,))
-                #curs.execute("SELECT CAST ((JulianDay('now','localtime') - JulianDay(start_time)) * 24 * 60 AS Integer) FROM parked_cars WHERE parked_car=?", (regnum,))
+
+                # Parking summary shows after user stops parking session
+                curs.execute("""SELECT * FROM parked_cars WHERE parked_car=?""", (regnum,))
+                car_info = curs.fetchone()
+                park_summary = (f'Parking summary')
+                car_reg = "Registration number: " + str(car_info[0])
+                start_time = "Start date and time: " + str(car_info[1])
+                stop_time = "Stop date and time: " + str(car_info[2])
+                total_time = str(car_info[3])
+                if total_time < "1":
+                    total_time = "Total parking time: " + str(round(car_info[3] * 60, 1)) + " minutes"
+                elif total_time >= "1":
+                    a = car_info[3]
+                    b = a - int(a)
+                    total_time = "Total parking time: " + str(int(car_info[3])) + " hours & " + str((round((b * 60) % 60))) + " minutes"  
+                price = "Total price: " + str(car_info[4]) + " SEK"
+                
+                # Labels for the variables above
+                parking_summary = LabelFrame(stop_pop_up, text=park_summary, bg='#F5F5F5', font=('Verdana 11 bold'), pady=5, labelanchor='n')
+                parking_summary.pack(pady=5)
+                car_reg_label = Label(parking_summary, text=car_reg, bg='#F5F5F5', font=("Verdana", 11))
+                car_reg_label.pack(padx= 8, anchor='w')
+                start_time_label = Label(parking_summary, text=start_time, bg='#F5F5F5', font=("Verdana", 11))
+                start_time_label.pack(padx= 8, anchor='w')
+                stop_time_label = Label(parking_summary, text=stop_time, bg='#F5F5F5', font=("Verdana", 11))
+                stop_time_label.pack(padx= 8, anchor='w')
+                total_time_label = Label(parking_summary, text=total_time, bg='#F5F5F5', font=("Verdana", 11))
+                total_time_label.pack(padx= 8, anchor='w')
+                price_label = Label(parking_summary, text=price, bg='#F5F5F5', font=("Verdana", 11))
+                price_label.pack(padx= 8, anchor='w')
+
+                receipt_label = Label(stop_pop_up, text='Do you wish to get the receipt?', bg='#F5F5F5', font=("Verdana", 11))
+                receipt_label.pack(padx= 8, pady=8, anchor='w')
+
                 TOTAL_PARKING_SPACES += 1
-            # Commit changes
+
+                # Destroy stop_pop_up after 5 minutes and activate root buttons.
+                stop_pop_up.after(300000, lambda: stop_pop_up.destroy()) #activate_root_buttons())
+                start_parking_button.after(300000, lambda: start_parking_button.config(state='normal'))
+                stop_parking_button.after(300000, lambda: stop_parking_button.config(state='normal'))
+                status_parking_button.after(300000, lambda: status_parking_button.config(state='normal'))
+
+                # Commit changes
                 con.commit()
             # Clear entry box
                 entry_regnum_stop.delete(0, END)
@@ -386,11 +454,13 @@ def stop_parking():
         else:
             messagebox.showerror(title='Not valid', message=f'{regnum} is not a valid registration number\nPlease try again.')
             entry_regnum_stop.delete(0, END)
+            stop_pop_up.destroy()
             activate_root_buttons()
 
-    # Create status button for status_pop_up
-    stop_button = Button(stop_pop_up, command=stop_click, height=0, width=30, relief="solid", text="Stop parking", font=('Verdana', 10), fg='#F5F5F5', bg='#8f1d21')
+    # Create stop button for stop_pop_up
+    stop_button = Button(stoplabelframe, command=stop_click, height=0, width=30, relief="solid", text="Stop parking", font=('Verdana', 10), fg='#F5F5F5', bg='#8f1d21')
     stop_button.pack(pady=20)
+    #stop_pop_up.after(5000, lambda: stop_pop_up.destroy())
 
     # Function to activate root buttons and close status_pop_up page when clicking 'X' on the Windows Manager.
     def on_close():
@@ -416,7 +486,7 @@ see_prices_button.grid(padx=30, pady=5, row='4', column='0', sticky='w')
 start_parking_button = Button(root, command=start_parking, height=2, width=20, relief="solid", text="Start parking", font=('Verdana', 10), fg='#F5F5F5', bg='#2E8B57')
 start_parking_button.grid(padx=30, pady=15, row='5', column='0', sticky='w')
 
-status_parking_button = Button(root, command=car_status, height=2, width=22, relief="solid", text="See status for parked car", font=('Verdana', 10), fg='#F5F5F5', bg='#3466a5')
+status_parking_button = Button(root, command=car_status, height=2, width=22, relief="solid", text="Parked car status", font=('Verdana', 10), fg='#F5F5F5', bg='#3466a5')
 status_parking_button.grid(padx=30, pady=15, row='5', column='0', sticky='n')
 
 stop_parking_button = Button(root, command=stop_parking, height=2, width=20, relief="solid", text="Stop parking", font=('Verdana', 10), fg='#F5F5F5', bg='#8f1d21')
@@ -424,11 +494,11 @@ stop_parking_button.grid(padx=30, pady=15, row='5', column='0', sticky='e')
 
 # Create black line below logo
 c = Canvas(root, height=22, width=620, bg="black")
-c.grid(row=1, column=0)
+c.grid(row=1, column=0, pady=0)
 
 # Create labels
-welcome_label = Label(root, text="Welcome to YourPark!\n\nPlease choose from the options below..", font=('Verdana', 10), bg='#F5F5F5', fg="black")
-welcome_label.grid(row=3, column=0, sticky='n', padx=10, pady=10)
+welcome_label = Label(root, text="Welcome to YourPark!", font=('Verdana 12 bold'), bg='#F5F5F5', fg="black")
+welcome_label.grid(row=3, column=0, sticky='n', padx=10, pady=16)
 time_label = Label(root)
 time_label.grid(row=1, column=0, sticky='w')
 date_label = Label(root)
