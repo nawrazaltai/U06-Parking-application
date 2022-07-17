@@ -1,6 +1,7 @@
 """Parking application"""
 # from tkinter import *
 from tkinter import Label, LabelFrame, Toplevel, StringVar, Entry, END, Button, messagebox, Tk, Canvas, TclError, Message
+import customtkinter
 import sqlite3
 from time import strftime
 import re
@@ -9,6 +10,10 @@ from turtle import bgcolor
 # from tkinter import Tk, Canvas
 # from tkinter import messagebox
 from PIL import ImageTk, Image
+
+#customtkinter.set_appearance_mode("Light")  # Modes: system (default), light, dark
+#customtkinter.set_default_color_theme("dark-blue")  # Themes: blue (default), dark-blue, green
+
 
 # Create root window
 root = Tk()
@@ -434,8 +439,16 @@ def stop_parking():
                 price_label = Label(parking_summary, text=price, bg='#F5F5F5', font=("Verdana", 11))
                 price_label.pack(padx= 8, anchor='w')
 
+                #frame1= Tk.Frame(stop_pop_up, width=50)
+                #frame1.pack()
+
                 receipt_label = Label(stop_pop_up, text='Do you wish to get the receipt?', bg='#F5F5F5', font=("Verdana", 11))
                 receipt_label.pack(padx= 8, pady=8, anchor='w')
+
+                
+
+                #yes_button = Button(stop_pop_up, command='', height=0, width=30, relief="solid", text="Yes", font=('Verdana', 10), fg='#F5F5F5', bg='#8f1d21')
+                #yes_button.pack(pady=20)
 
                 TOTAL_PARKING_SPACES += 1
 
@@ -460,7 +473,6 @@ def stop_parking():
     # Create stop button for stop_pop_up
     stop_button = Button(stoplabelframe, command=stop_click, height=0, width=30, relief="solid", text="Stop parking", font=('Verdana', 10), fg='#F5F5F5', bg='#8f1d21')
     stop_button.pack(pady=20)
-    #stop_pop_up.after(5000, lambda: stop_pop_up.destroy())
 
     # Function to activate root buttons and close status_pop_up page when clicking 'X' on the Windows Manager.
     def on_close():
