@@ -14,8 +14,8 @@ from turtle import bgcolor
 from PIL import ImageTk, Image
 from psycopg import Column
 
-customtkinter.set_appearance_mode("dark")  # Modes: system (default), light, dark
-customtkinter.set_default_color_theme("blue")  # Themes: blue (default), dark-blue, green
+#customtkinter.set_appearance_mode("dark")  # Modes: system (default), light, dark
+#customtkinter.set_default_color_theme("blue")  # Themes: blue (default), dark-blue, green
 
 # Create main window called root
 root = customtkinter.CTk()
@@ -87,13 +87,18 @@ def enable_main_buttons():
     stop_button.configure(state=tkinter.NORMAL)
     status_button.configure(state=tkinter.NORMAL)
 
-# Create calender logo for todays date
+# Resize pictures for logos
 today_logo = ImageTk.PhotoImage(Image.open("pics/today.png").resize((40, 40), Image.ANTIALIAS))
 time_logo = ImageTk.PhotoImage(Image.open("pics/time.png").resize((40, 40), Image.ANTIALIAS))
-reg_logo = ImageTk.PhotoImage(Image.open("pics/abc.png").resize((50, 50), Image.ANTIALIAS))
+reg_logo = ImageTk.PhotoImage(Image.open("pics/reg.png").resize((50, 50), Image.ANTIALIAS))
 pay_logo = ImageTk.PhotoImage(Image.open("pics/price.png").resize((50, 50), Image.ANTIALIAS))
 timer_logo = ImageTk.PhotoImage(Image.open("pics/timer.png").resize((50, 50), Image.ANTIALIAS))
-# # Function to show date and keep time dynamic at root
+car_status_logo = ImageTk.PhotoImage(Image.open("pics/here.png").resize((50, 50), Image.ANTIALIAS))
+start_date_logo = ImageTk.PhotoImage(Image.open("pics/start_date.png").resize((50, 50), Image.ANTIALIAS))
+exit_logo = ImageTk.PhotoImage(Image.open("pics/exit.png").resize((30, 30), Image.ANTIALIAS))
+back_logo = ImageTk.PhotoImage(Image.open("pics/back.png").resize((30, 30), Image.ANTIALIAS))
+
+# Function to show date
 def current_date():
     """This function is for the main menu (root).
 
@@ -120,7 +125,7 @@ current_date()
 
 def current_time():
     # Store current timestamp in the my_time variable
-    my_time = strftime(' %H:%M:%S')
+    my_time = strftime('%H:%M:%S')
 
     # Create label for time and keep it dynamic
     time_label = customtkinter.CTkLabel(master=frame_info,
@@ -180,7 +185,7 @@ start_logo = ImageTk.PhotoImage(Image.open("pics/parking-icon-9.jpg").resize((90
 # Resize logo for start_pop_up
 logo_image_in_start = ImageTk.PhotoImage(Image.open("pics/greylogo.png").resize((150, 150), Image.ANTIALIAS))
 
-# Variable for placeholder text
+# Variable for placeholder text belonging to entryboxes asking for regnum.
 placeholder_text = 'XXXXXX (6 characters)'
 
 # Start parking function
@@ -208,6 +213,31 @@ def start_parking_button():
     lab.grid(row=0, column=0, sticky='w', pady=0)
     # lab.grid_rowconfigure(0, weight=1)
     # lab.grid_columnconfigure(0, weight=1)
+
+    def on_close_start():
+        start_button.configure(state=tkinter.NORMAL)
+        stop_button.configure(state=tkinter.NORMAL)
+        status_button.configure(state=tkinter.NORMAL)
+        start_pop_up.destroy()
+
+    # Create button to return to main menu
+    back_status_button = customtkinter.CTkButton(master=start_pop_up,
+                                 width=10,
+                                 height=20,
+                                 border_width=1,
+                                 corner_radius=10,
+                                 fg_color='#757575',
+                                 hover_color='#757575',
+                                 border_color='white',
+                                 text="Back to main menu",
+                                 text_color='black',
+                                 text_color_disabled='grey',
+                                 text_font='Verdana 10',
+                                 image= back_logo,
+                                 compound='left',
+                                 command=on_close_start)
+    back_status_button.grid(column=0, row=0, pady=12, padx=100, sticky='se')
+
 
     # Grey frame (line) below logo in start_pop_up
     grey_frame = customtkinter.CTkFrame(master=start_pop_up,
@@ -353,9 +383,11 @@ def status_parking_button():
     status_pop_up = customtkinter.CTkToplevel(root)
     status_pop_up.iconbitmap('pics/phouse.ico')
     status_pop_up.title("Start parking")
-    status_pop_up.geometry("500x600")
+    status_pop_up.geometry("700x600")
+    #status_pop_up.state('zoomed')
     status_pop_up.resizable(width=False, height=False)
     status_pop_up.config(bg="silver")
+    
 
     # Disable root buttons while in status_pop_up
     disable_main_buttons()
@@ -370,31 +402,56 @@ def status_parking_button():
                                bg_color='silver')
     frame_logo.grid(row=0, column=0, sticky='nw', pady = 3, padx=0)
 
-    # Create label for picture and place it on the grid
+    # Create label for p-logo and place it on the grid
     lab = customtkinter.CTkLabel(master=frame_logo, image=logo_image_in_start, borderwidth=0, corner_radius=10, fg_color="silver", bg_color='silver')
     lab.grid(row=0, column=0, sticky='w', pady=0)
     # lab.grid_rowconfigure(0, weight=1)
     # lab.grid_columnconfigure(0, weight=1)
 
+    def on_close():
+        status_pop_up.destroy()
+        start_button.configure(state=tkinter.NORMAL)
+        stop_button.configure(state=tkinter.NORMAL)
+        status_button.configure(state=tkinter.NORMAL)
+
+    # Create button to return to main menu
+    back_status_button = customtkinter.CTkButton(master=status_pop_up,
+                                 width=10,
+                                 height=20,
+                                 border_width=1,
+                                 corner_radius=10,
+                                 fg_color='#757575',
+                                 hover_color='#757575',
+                                 border_color='white',
+                                 text="Back to main menu",
+                                 text_color='black',
+                                 text_color_disabled='grey',
+                                 text_font='Verdana 10',
+                                 image= back_logo,
+                                 compound='left',
+                                 command=on_close)
+    back_status_button.grid(column=0, row=0, pady=12, padx=10, sticky='se')
+
+
     # Grey frame (line) below logo in start_pop_up
     grey_frame = customtkinter.CTkFrame(master=status_pop_up,
-                               width=600,
+                               width=700,
                                height=2,
                                corner_radius=1,
                                bg_color='silver',
                                fg_color='grey')
     grey_frame.grid(row=1, column=0, padx=0, pady=0, sticky='w')
 
-    # Frame to place entry box in start_pop_up
+    # Frame to place entry box in status_pop_up
     frame = customtkinter.CTkFrame(master=status_pop_up,
-                               width=490,
+                               width=500,
                                height=100,
                                border_width=1,
                                border_color='white',
                                bg_color='silver',
                                fg_color='#757575',
                                corner_radius=10)
-    frame.grid(row=2, column= 0,padx=90, pady=20, sticky="w")
+    frame.grid(row=2, column= 0,padx=130, pady=10, sticky="w")
 
     # Label with 'enter reg num below'
     status_label = customtkinter.CTkLabel(master=frame,
@@ -406,25 +463,25 @@ def status_parking_button():
                                fg_color=("#757575"),
                                bg_color=("#757575"),
                                corner_radius=1)
-    status_label.grid(row=2, column=0, sticky='n', padx=0, pady=8)
+    status_label.grid(row=0, column=0, sticky='n', padx=0, pady=2)
 
     # Entry box for regnum
     entry_text_status = tkinter.StringVar()
     entry_regnum_status = customtkinter.CTkEntry(master=frame,
                                 textvariable=entry_text_status,
-                                width=300,
+                                width=400,
                                 text_color='black',
                                 text_font=("Verdana 11"),
                                 bg_color='#757575',
                                 fg_color='silver',
                                 corner_radius=5)
-    entry_regnum_status.grid(row=3, column=0, padx=10, pady=8)
+    entry_regnum_status.grid(row=1, column=0, padx=10, pady=10, sticky='n')
 
     # Create placeholder text for regnum entry and delete placeholder text when clicked in entry.
     entry_regnum_status.insert(0, placeholder_text)
     entry_regnum_status.bind("<FocusIn>", lambda args: entry_regnum_status.delete('0', 'end'))
     
-
+    # limit entry text to 6 uppercase chars.
     def character_limit(entry_text):
         if len(entry_text.get()) > 0:
             entry_text.set(entry_text.get().upper()[:6])
@@ -442,7 +499,6 @@ def status_parking_button():
         # Variable to store inputed reg num
         regnum = entry_text_status.get()
         
-
         # Check if regnum has valid format
         if re.match(r"^[A-Za-z]{3}[0-9]{2}[0-9A-Za-z]{1}$", regnum):
             # Get total parked time for a parked_car and store it in variable parked_time
@@ -465,7 +521,7 @@ def status_parking_button():
                 # Show total parking time, if time < 60min ---> show in minutes, if time > 60min ---> show in hours
                 if parked_time[0] <= 59:
                     total_time = "Total parking time: " + str(round(parked_time[0])) + ' minutes'
-                    print(total_time)
+                    #print(total_time)
                 elif parked_time[0] >= 60:
                     a = (round(parked_time[0] / 60, 2))
                     b = a - int(a)
@@ -477,9 +533,11 @@ def status_parking_button():
                 # Price for 61 min onwards ---> 0.25kr/min, REMOVES FIRST FREE HOUR)
                 elif parked_time[0] >= 61:
                     price = "Current price: " + str(round((parked_time[0] - 60) * (0.25), 1)) + ' SEK'
-                    print(price)
+                    #print(price)
 
-                # Labels for the variables above
+                back_status_button.configure(state=tkinter.DISABLED)
+
+                # Create frame for each info section displayed when clicking check status 
                 summary_frame = customtkinter.CTkFrame(master=status_pop_up,
                                width=500,
                                height=100,
@@ -488,7 +546,7 @@ def status_parking_button():
                                bg_color='silver',
                                fg_color='#757575',
                                corner_radius=10)
-                summary_frame.grid(row=3, column= 0,padx=55, pady=15, sticky='w')
+                summary_frame.grid(row=3, column= 0,padx=130, pady=0, sticky='w')
                 
                 frame1 = customtkinter.CTkFrame(master=summary_frame,
                                width=200,
@@ -499,6 +557,26 @@ def status_parking_button():
                                fg_color='#757575',
                                corner_radius=10)
                 frame1.grid(row=5, column= 0,padx=10, pady=5, sticky="w")
+                
+                frame2 = customtkinter.CTkFrame(master=summary_frame,
+                               width=200,
+                               height=200,
+                               border_width=1,
+                               border_color='white',
+                               bg_color='#757575',
+                               fg_color='#757575',
+                               corner_radius=10)
+                frame2.grid(row=6, column= 0,padx=10, pady=5, sticky="w")
+
+                frame3 = customtkinter.CTkFrame(master=summary_frame,
+                               width=200,
+                               height=200,
+                               border_width=2,
+                               border_color='#1E5631',
+                               bg_color='#757575',
+                               fg_color='#757575',
+                               corner_radius=10)
+                frame3.grid(row=7, column= 0,padx=10, pady=5, sticky="w")
 
                 frame4 = customtkinter.CTkFrame(master=summary_frame,
                                width=400,
@@ -510,8 +588,6 @@ def status_parking_button():
                                corner_radius=10)
                 frame4.grid(row=8, column= 0, padx=10, pady=5, sticky="w")
 
-
-
                 frame5 = customtkinter.CTkFrame(master=summary_frame,
                                width=200,
                                height=200,
@@ -522,25 +598,57 @@ def status_parking_button():
                                corner_radius=10)
                 frame5.grid(row=9, column= 0,padx=10, pady=5, sticky="w")
 
+                # Create labels for regnum text and logo
                 car_reg_label = customtkinter.CTkLabel(frame1, text=car_reg, corner_radius=1, bg_color='#757575', text_font=("Verdana 11"), text_color='black')
-                car_reg_label.grid(row=0, column= 0,padx=45, pady=7, sticky="")
+                car_reg_label.grid(row=0, column= 0,padx=40, pady=7, sticky="")
                 reg_lab = customtkinter.CTkLabel(master=frame1, image=reg_logo, borderwidth=0, width=10, corner_radius=1, bg_color='#757575')
                 reg_lab.grid(row=0, column=0, sticky='w', padx=3)
-                start_time_label = customtkinter.CTkLabel(summary_frame, text=start_time, bg_color='#757575', text_font=("Verdana 11"), text_color='black')
-                start_time_label.grid(row=6, column= 0,padx=10, pady=7, sticky="w")
-                stop_time_label = customtkinter.CTkLabel(summary_frame, text=stop_time, bg_color='#757575', text_font=("Verdana 11"), text_color='black')
-                stop_time_label.grid(row=7, column= 0,padx=10, pady=7, sticky="w")
+                
+                # Create labels for start_time text and logo
+                start_time_label = customtkinter.CTkLabel(frame2, text=start_time, bg_color='#757575', text_font=("Verdana 11"), text_color='black')
+                start_time_label.grid(row=0, column= 0,padx=40, pady=7, sticky="n")
+                start_lab = customtkinter.CTkLabel(master=frame2, image=start_date_logo, borderwidth=0, width=10, corner_radius=1, bg_color='#757575')
+                start_lab.grid(row=0, column=0, sticky='w', padx=3)
+                
+                # Create labels for stop_time/status text and logo
+                stop_time_label = customtkinter.CTkLabel(frame3, text=stop_time, bg_color='#757575', text_font=("Verdana 11"), text_color='black')
+                stop_time_label.grid(row=0, column= 0,padx=40, pady=7, sticky="w")
+                status_lab = customtkinter.CTkLabel(master=frame3, image=car_status_logo, borderwidth=0, width=10, corner_radius=1, bg_color='#757575')
+                status_lab.grid(row=0, column=0, sticky='w', padx=3)
+                
+                # Create labels for total_time text and logo
                 total_time_label = customtkinter.CTkLabel(frame4, text=total_time, bg_color='#757575', text_font=("Verdana 11"), text_color='black')
                 total_time_label.grid(row=0, column= 0,padx=39, pady=7, sticky="n")
                 timer_lab = customtkinter.CTkLabel(master=frame4, image=timer_logo, borderwidth=0, width=10, corner_radius=1, bg_color='#757575')
                 timer_lab.grid(row=0, column=0, sticky='w', padx=3)
+                
+                # Create labels for price text and logo
                 price_label = customtkinter.CTkLabel(frame5, text=price, bg_color='#757575', text_font=("Verdana 11"), text_color='black')
-                price_label.grid(row=0, column= 0,padx=45, pady=7, sticky="n")
+                price_label.grid(row=0, column= 0,padx=40, pady=7, sticky="n")
                 pay_lab = customtkinter.CTkLabel(master=frame5, image=pay_logo, borderwidth=0, width=10, corner_radius=1, bg_color='#757575')
                 pay_lab.grid(row=0, column=0, sticky='w', padx=3)
 
                 # Clear entry box after click on 'check status'
                 entry_regnum_status.delete(0, END)
+
+                # Create the 'check car status'-button for status_pop_upz
+                exit_status_button = customtkinter.CTkButton(master=status_pop_up,
+                                 width=422,
+                                 height=40,
+                                 border_width=1,
+                                 corner_radius=10,
+                                 fg_color='#757575',
+                                 hover_color='#757575',
+                                 border_color='white',
+                                 text="Exit",
+                                 text_color='black',
+                                 text_color_disabled='grey',
+                                 text_font='Verdana 11 bold',
+                                 image= exit_logo,
+                                 compound='right',
+                                 command=on_close)
+                exit_status_button.grid(column=0, row=4, pady=12, padx=130, sticky='w')
+
             # If regnum is valid but not in db, show error message.
             elif not car_info:
                 messagebox.showerror(title='Car not found', message=f'Car with registration number: {regnum} not found')
@@ -554,15 +662,16 @@ def status_parking_button():
             enable_main_buttons()
         # Commit changes
         con.commit()
+    # Create the 'check car status'-button for status_pop_up    
     status_click_button = customtkinter.CTkButton(master=frame,
-                                 width=300,
+                                 width=400,
                                  height=30,
                                  border_width=1,
                                  corner_radius=10,
                                  fg_color='#2565AE',
                                  hover_color='#253DA1',
                                  border_color='white',
-                                 text="Parked car status",
+                                 text="Check car status",
                                  text_color='white',
                                  text_color_disabled='grey',
                                  text_font='Verdana 11 bold',
@@ -575,7 +684,7 @@ def status_parking_button():
         start_button.configure(state=tkinter.NORMAL)
         stop_button.configure(state=tkinter.NORMAL)
         status_button.configure(state=tkinter.NORMAL)
-    status_pop_up.protocol("WM_DELETE_WINDOW", on_close)
+    #status_pop_up.protocol("WM_DELETE_WINDOW", on_close) ## <-- To close pop up with 'x' button on windows manager.
 
 # Create status button for root
 status_button = customtkinter.CTkButton(master=buttons_frame,
@@ -593,7 +702,7 @@ status_button = customtkinter.CTkButton(master=buttons_frame,
                                  image=status_logo,
                                  compound='right',
                                  command=status_parking_button)
-status_button.grid(column=1, row=4, pady= 0, padx=0)
+status_button.grid(column=1, row=4, pady=8, padx=0)
 
 # Resize stop logo
 stop_logo = ImageTk.PhotoImage(Image.open("pics/barrier.png").resize((80, 80), Image.ANTIALIAS))
@@ -638,7 +747,6 @@ price_label = customtkinter.CTkLabel(master=buttons_frame,
                                bg_color=("grey"),
                                corner_radius=10)
 price_label.grid(row=5, column=1, sticky='n', padx=0, pady=50)
-
 
 
 # Create a connection to DB
