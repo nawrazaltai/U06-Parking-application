@@ -99,7 +99,8 @@ start_date_logo = ImageTk.PhotoImage(Image.open("pics/start_date.png").resize((5
 exit_logo = ImageTk.PhotoImage(Image.open("pics/exit.png").resize((30, 30), Image.ANTIALIAS))
 back_logo = ImageTk.PhotoImage(Image.open("pics/back.png").resize((30, 30), Image.ANTIALIAS))
 continue_logo = ImageTk.PhotoImage(Image.open("pics/continue.png").resize((50, 50), Image.ANTIALIAS))
-
+card_logo = ImageTk.PhotoImage(Image.open("pics/card.png").resize((50, 50), Image.ANTIALIAS))
+cvv_logo = ImageTk.PhotoImage(Image.open("pics/cvv.png").resize((40, 40), Image.ANTIALIAS))
 
 # Function to show date
 def current_date():
@@ -107,7 +108,7 @@ def current_date():
 
     The function shows the current date and stores it in the date_label."""
     # Store current date in the todays_date variable
-    todays_date = strftime('%A %d-%m-%Y')
+    todays_date = strftime(' %A %d-%m-%Y')
 
     # Create label for date
     date_label = customtkinter.CTkLabel(master=frame_info,
@@ -803,6 +804,7 @@ def stop_parking_button():
                                 textvariable=entry_text_stop,
                                 width=400,
                                 text_color='black',
+                                border_color='black',
                                 text_font=("Verdana 11"),
                                 bg_color='#757575',
                                 fg_color='silver',
@@ -870,16 +872,6 @@ def stop_parking_button():
                     b = a - int(a)
                     total_time = "Total parking time: " + str(int(car_info[3])) + " hours & " + str((round((b * 60) % 60))) + " minutes"  
                 price = "Total price: " + str(car_info[4]) + " SEK"
-
-        # Create frame for each info section displayed when clicking check status
-                #stop_pop_up.grid_rowconfigure(2, weight=1)
-                # summary_frame = customtkinter.CTkFrame(master=frame,
-                #                border_width=1,
-                #                border_color='black',
-                #                bg_color='silver',
-                #                fg_color='#757575',
-                #                corner_radius=10)
-                # summary_frame.grid(row=3, column= 0,padx=5, pady=0, sticky='w')
                 
 
                 # Parking summary text- title
@@ -979,7 +971,7 @@ def stop_parking_button():
                 entry_regnum_stop.delete(0, END)
                 
                 def continue_to_payment():
-                    stop_pop_up.grid_rowconfigure(2, weight=3)
+                    continue_button.configure(state=tkinter.DISABLED)
                     frame_t = customtkinter.CTkFrame(master=stop_pop_up,
                                width=600,
                                height=600,
@@ -988,39 +980,84 @@ def stop_parking_button():
                                bg_color='silver',
                                fg_color='#757575',
                                corner_radius=10)
-                    frame_t.grid(row=2, column= 1, padx=10, pady=8, sticky="ne")
-                    # payment_frame = customtkinter.CTkFrame(master=stop_pop_up,
-                    #            width=380,
-                    #            height=260,
-                    #            border_width=1,
-                    #            border_color='black',
-                    #            bg_color='silver',
-                    #            fg_color='#757575',
-                    #            corner_radius=10)
-                    # payment_frame.grid(row=2, column = 1, padx=20, pady=10, sticky='w')
+                    frame_t.grid(row=2, column= 1, padx=10, pady=8, sticky="nw")
 
-                    #stop_pop_up.grid_rowconfigure(2, weight=1)
-                    # test_entry = customtkinter.CTkEntry(master=stop_pop_up,
-                    #             placeholder_text='Test',
-                    #             width=400,
-                    #             height=200,
-                    #             text_color='black',
-                    #             text_font=("Verdana 11"),
-                    #             bg_color='#757575',
-                    #             fg_color='silver',
-                    #             corner_radius=5)
-                    # test_entry.grid(row=3, column=0, padx=500, pady=200, sticky='n')
+                    # Frame to hold labels with texts and logos
+                    one_frame = customtkinter.CTkFrame(master=frame_t, fg_color='#757575', border_color='black')
+                    one_frame.grid(row=0, column= 0,padx=3, pady=5, sticky="w")
 
-                    #one_label = customtkinter.CTkLabel(stop_pop_up, text='Test', bg_color='#757575', text_font=("Verdana 11"), text_color='black')
-                    #one_label.grid(row=2, column= 0,padx=30, pady=7, sticky="n")
+                    # Label for 'enter card num' 
+                    card_text_label = customtkinter.CTkLabel(master=one_frame, text='Enter credit card number:', bg_color='#757575', fg_color='#757575', text_font=("Verdana 11"), text_color='black')
+                    card_text_label.grid(row=0, column= 0,padx=3, pady=0, sticky="w")
+                    
+                    # Card logo label
+                    card_lab = customtkinter.CTkLabel(master=one_frame, image=card_logo, fg_color='#757575', width=20)
+                    card_lab.grid(row=1, column = 0, padx=0, pady=0, sticky='w')
 
-                    #stop_pop_up.grid_rowconfigure(0, weight=1)
-                    #stop_pop_up.grid_rowconfigure(1, weight=2)
-                    #stop_pop_up.grid_rowconfigure(2, weight=2)
-                    # stop_pop_up.grid_rowconfigure(3, weight=1)
-                    # stop_pop_up.grid_rowconfigure(4, weight=1)
-                    #stop_pop_up.grid_columnconfigure(0, weight=2)
-                    #stop_pop_up.grid_columnconfigure(1, weight=1)
+                    # Card num entry
+                    card_entry = customtkinter.CTkEntry(master=one_frame,
+                                placeholder_text='Test',
+                                width=230,
+                                height=30,
+                                text_color='black',
+                                border_color='black',
+                                text_font=("Verdana 11"),
+                                bg_color='#757575',
+                                fg_color='silver',
+                                corner_radius=5)
+                    card_entry.grid(row=1, column=0, padx=35, pady=0, sticky='e')
+
+                    cvv_text_label = customtkinter.CTkLabel(master=one_frame, text='Enter CVV number:', bg_color='#757575', fg_color='#757575', text_font=("Verdana 11"), text_color='black')
+                    cvv_text_label.grid(row=2, column= 0,padx=0, pady=2, sticky="w")
+
+                    cvv_lab = customtkinter.CTkLabel(master=one_frame, image=cvv_logo, width=20)
+                    cvv_lab.grid(row=3, column = 0, padx=3, pady=0, sticky='w')
+
+                    cvv_entry = customtkinter.CTkEntry(master=one_frame,
+                                placeholder_text='Test',
+                                width=100,
+                                height=30,
+                                text_color='black',
+                                border_color='black',
+                                text_font=("Verdana 11"),
+                                bg_color='#757575',
+                                fg_color='silver',
+                                corner_radius=5)
+                    cvv_entry.grid(row=3, column=0, padx=35, pady=0, sticky='w')
+
+                    exp_date_label = customtkinter.CTkLabel(master=one_frame, text='Expiration date (MM/YYYY):', bg_color='#757575', fg_color='#757575', text_font=("Verdana 11"), text_color='black')
+                    exp_date_label.grid(row=4, column= 0,padx=0, pady=2, sticky="w")
+
+                    def optionmenu_callback(choice):
+                        print("optionmenu dropdown clicked:", choice)
+                    drop_month = customtkinter.CTkOptionMenu(master=one_frame,
+                                       values=["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"],
+                                       fg_color='silver',
+                                       text_color='black',
+                                       button_color='white',
+                                       corner_radius=5,
+                                       dropdown_color='silver',
+                                       dropdown_hover_color='#757575',
+                                       dropdown_text_color='black',
+                                       dropdown_text_font='Verdana 11',
+                                       text_font='Verdana 11',
+                                       command=optionmenu_callback)
+                    drop_month.grid(row=5, column=0, sticky='w', padx=2)
+
+
+                    drop_year = customtkinter.CTkOptionMenu(master=one_frame,
+                                       values=["2022", "2023", "2024", "2025"],
+                                       fg_color='silver',
+                                       text_color='black',
+                                       button_color='white',
+                                       corner_radius=5,
+                                       dropdown_color='silver',
+                                       dropdown_hover_color='#757575',
+                                       dropdown_text_color='black',
+                                       dropdown_text_font='Verdana 11',
+                                       text_font='Verdana 11',
+                                       command=optionmenu_callback)
+                    drop_year.grid(row=5, column=0, sticky='e', padx=2)
                 
                 # Create the 'check car status'-button for status_pop_up
                 #stop_pop_up.grid_rowconfigure(2, weight=1)
